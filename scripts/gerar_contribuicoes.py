@@ -1,32 +1,61 @@
 import subprocess
-from collections import Counter
+from collections import defaultdict
 
 resultado = subprocess.run(
     [
         "git",
         "log", #consulta o histórico de commits
         "--all", #todas as branchs
-        "--format=%an|%ae|%H|%s" #infos do commit autor, email, hash e mensagem
+        "--format=AUTHOR|%an|%ae", #infos do commit 
+         "--numstat" 
     ],
     capture_output=True,
     text=True,
     check=True
 )
+#print("Resultado recebido pelo Python:")
+#print(resultado.stdout)
 
-commits_por_pessoa = Counter()
+contribuicoes = defaultdict(
+    lambda: {
+        "commits": 0,
+        "adicionadas": 0,
+        "removidas": 0
+    }
+)
+
+pessoa_atual = None
 
 for linha in resultado.stdout.splitlines():
-    partes = linha.split("|", maxsplit=3)
+    if linha.startswith("AUTHOR|"):
+        partes = linha.split("|", maxsplit=2)
 
-    if len(partes) != 4:
-        continue
+        nome = partes[1]
+        email = partes[2]
+        pessoa_atual = f"{nome} <{email}>"
 
-    nome, email, hash_commit, mensagem = partes
+        contribuicoes[pessoa_atual]["commits"] += 1
 
-    pessoa = f"{nome} <{email}>"
-    commits_por_pessoa[pessoa] += 1
+    elif pessoa_atual and linha.strip():
+        partes = linha.split("\t")
 
-print("Commits por pessoa:\n")
+        if len(partes) != 3:
+            continue
 
-for pessoa, quantidade in commits_por_pessoa.most_common():
-    print(f"{pessoa}: {quantidade} commit(s)")
+        adicionadas, removidas, arquivo = partes
+
+        # Arquivos binários podem aparecer como "-"
+        if adicionadas.isdigit():
+            contribuicoes[pessoa_atual]["adicionadas"] += int(adicionadas)
+
+        if removidas.isdigit():
+            contribuicoes[pessoa_atual]["removidas"] += int(removidas)
+
+print("Relatório de contribuições:\n")
+
+for pessoa, dados in contribuicoes.items():
+    print(f"{pessoa}")
+    print(f"  Commits: {dados['commits']}")
+    print(f"  Linhas adicionadas: {dados['adicionadas']}")
+    print(f"  Linhas removidas: {dados['removidas']}")
+    print()
