@@ -136,9 +136,58 @@ for issue in issues:
     autor = issue["user"]["login"]
     contribuicoes[autor]["issues"] += 1
 
+
+def atualizar_readme(contribuicoes):
+    caminho_readme = Path("README.md")
+
+    if not caminho_readme.exists():
+        print("README.md não encontrado.")
+        return
+
+    inicio = "<!-- CONTRIBUTIONS_START -->"
+    fim = "<!-- CONTRIBUTIONS_END -->"
+
+    conteudo = caminho_readme.read_text(encoding="utf-8")
+
+    if inicio not in conteudo or fim not in conteudo:
+        print("Marcadores de contribuições não encontrados no README.md.")
+        return
+
+    linhas = [
+        "| Pessoa | Commits | Adicionadas | Removidas | Pull Requests | Issues |",
+        "|---|---:|---:|---:|---:|---:|"
+    ]
+
+    for pessoa, dados in contribuicoes.items():
+        linhas.append(
+            f"| {pessoa} | "
+            f"{dados['commits']} | "
+            f"{dados['adicionadas']} | "
+            f"{dados['removidas']} | "
+            f"{dados['pull_requests']} | "
+            f"{dados['issues']} |"
+        )
+
+    tabela = "\n".join(linhas)
+
+    antes = conteudo.split(inicio, maxsplit=1)[0]
+    depois = conteudo.split(fim, maxsplit=1)[1]
+
+    novo_conteudo = (
+        antes
+        + inicio
+        + "\n"
+        + tabela
+        + "\n"
+        + fim
+        + depois
+    )
+
+    caminho_readme.write_text(novo_conteudo, encoding="utf-8")
+
+atualizar_readme(contribuicoes)
+
 print("Relatório de contribuições:\n")
-
-
 for pessoa, dados in contribuicoes.items():
     print(pessoa)
     print(f"  Commits: {dados['commits']}")
