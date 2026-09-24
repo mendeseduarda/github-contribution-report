@@ -39,6 +39,31 @@ def buscar_pull_requests():
 
     return resposta.json()
 
+def buscar_issues():
+    repositorio = os.environ.get("GITHUB_REPOSITORY")
+
+    if not repositorio:
+        print("GITHUB_REPOSITORY não foi definido.")
+        return []
+
+    url = f"https://api.github.com/repos/{repositorio}/issues"
+
+    resposta = requests.get(
+        url,
+        params={
+            "state": "all",
+            "per_page": 100
+        },
+        timeout=30
+    )
+
+    resposta.raise_for_status()
+
+    return [
+        issue
+        for issue in resposta.json()
+        if "pull_request" not in issue
+    ]
 
 resultado = subprocess.run(
     [
@@ -62,7 +87,8 @@ contribuicoes = defaultdict(
         "commits": 0,
         "adicionadas": 0,
         "removidas": 0,
-        "pull_requests": 0
+        "pull_requests": 0,
+        "issues": 0
     }
 )
 
@@ -104,6 +130,11 @@ for pull_request in pull_requests:
 
     contribuicoes[autor]["pull_requests"] += 1
 
+issues = buscar_issues()
+
+for issue in issues:
+    autor = issue["user"]["login"]
+    contribuicoes[autor]["issues"] += 1
 
 print("Relatório de contribuições:\n")
 
@@ -114,4 +145,5 @@ for pessoa, dados in contribuicoes.items():
     print(f"  Linhas adicionadas: {dados['adicionadas']}")
     print(f"  Linhas removidas: {dados['removidas']}")
     print(f"  Pull Requests: {dados['pull_requests']}")
+    print(f"  Issues: {dados['issues']}")
     print()
