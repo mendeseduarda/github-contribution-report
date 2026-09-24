@@ -187,12 +187,12 @@ def atualizar_readme(contribuicoes):
 
 atualizar_readme(contribuicoes)
 
-print("Relatório de contribuições:\n")
-for pessoa, dados in contribuicoes.items():
-    print(pessoa)
-    print(f"  Commits: {dados['commits']}")
-    print(f"  Linhas adicionadas: {dados['adicionadas']}")
-    print(f"  Linhas removidas: {dados['removidas']}")
-    print(f"  Pull Requests: {dados['pull_requests']}")
-    print(f"  Issues: {dados['issues']}")
-    print()
+#print("Relatório de contribuições:\n")
+#for pessoa, dados in contribuicoes.items():
+#    print(pessoa)
+#    print(f"  Commits: {dados['commits']}")
+#    print(f"  Linhas adicionadas: {dados['adicionadas']}")
+#    print(f"  Linhas removidas: {dados['removidas']}")
+#    print(f"  Pull Requests: {dados['pull_requests']}")
+#    print(f"  Issues: {dados['issues']}")
+#    print()
