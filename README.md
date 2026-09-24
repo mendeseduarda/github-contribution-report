@@ -7,9 +7,6 @@ Tool that analyzes commits, Pull Requests, and Issues to automatically generate 
 <!-- CONTRIBUTIONS_START -->
 | Pessoa | Commits | Adicionadas | Removidas | Pull Requests | Issues |
 |---|---:|---:|---:|---:|---:|
-### Relatório de contribuições
-<!-- CONTRIBUTIONS_START -->
-| Pessoa | Commits | Adicionadas | Removidas | Pull Requests | Issues |
-|---|---:|---:|---:|---:|---:|
-| mendeseduarda | 11 | 321 | 27 | 0 | 0 |
+| mendeseduarda | 11 | 333 | 38 | 0 | 0 |
+| Maria Eduarda Mendes | 2 | 5 | 2 | 0 | 0 |
 <!-- CONTRIBUTIONS_END -->
