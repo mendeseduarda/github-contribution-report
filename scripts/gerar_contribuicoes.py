@@ -1,7 +1,12 @@
 import json
-from pathlib import Path
+import os
 import subprocess
 from collections import defaultdict
+from pathlib import Path
+
+import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 arquivo_autores = Path("config/autores.json")
 
@@ -12,30 +17,58 @@ else:
     autores = {}
 
 
+def buscar_pull_requests():
+    repositorio = os.environ.get("GITHUB_REPOSITORY")
+
+    if not repositorio:
+        print("GITHUB_REPOSITORY não foi definido.")
+        return []
+
+    url = f"https://api.github.com/repos/{repositorio}/pulls"
+
+    resposta = requests.get(
+        url,
+        params={
+            "state": "all",
+            "per_page": 100
+        },
+        timeout=30
+    )
+
+    resposta.raise_for_status()
+
+    return resposta.json()
+
+
 resultado = subprocess.run(
     [
         "git",
         "log", #consulta o histórico de commits
         "--all", #todas as branchs
         "--format=AUTHOR|%an|%ae", #infos do commit 
-         "--numstat" 
+        "--numstat" 
     ],
     capture_output=True,
     text=True,
     check=True
 )
+
 #print("Resultado recebido pelo Python:")
 #print(resultado.stdout)
+
 
 contribuicoes = defaultdict(
     lambda: {
         "commits": 0,
         "adicionadas": 0,
-        "removidas": 0
+        "removidas": 0,
+        "pull_requests": 0
     }
 )
 
+
 pessoa_atual = None
+
 
 for linha in resultado.stdout.splitlines():
     if linha.startswith("AUTHOR|"):
@@ -43,30 +76,42 @@ for linha in resultado.stdout.splitlines():
 
         nome = partes[1]
         email = partes[2]
+
         pessoa_atual = autores.get(email, nome)
 
         contribuicoes[pessoa_atual]["commits"] += 1
 
     elif pessoa_atual and linha.strip():
-        partes = linha.split("\t")
+        partes = linha.split()
 
-        if len(partes) != 3:
+        if len(partes) < 3:
             continue
 
-        adicionadas, removidas, arquivo = partes
+        adicionadas = partes[0]
+        removidas = partes[1]
 
-        # Arquivos binários podem aparecer como "-"
         if adicionadas.isdigit():
             contribuicoes[pessoa_atual]["adicionadas"] += int(adicionadas)
 
         if removidas.isdigit():
             contribuicoes[pessoa_atual]["removidas"] += int(removidas)
 
+
+pull_requests = buscar_pull_requests()
+
+for pull_request in pull_requests:
+    autor = pull_request["user"]["login"]
+
+    contribuicoes[autor]["pull_requests"] += 1
+
+
 print("Relatório de contribuições:\n")
 
+
 for pessoa, dados in contribuicoes.items():
-    print(f"{pessoa}")
+    print(pessoa)
     print(f"  Commits: {dados['commits']}")
     print(f"  Linhas adicionadas: {dados['adicionadas']}")
     print(f"  Linhas removidas: {dados['removidas']}")
+    print(f"  Pull Requests: {dados['pull_requests']}")
     print()
