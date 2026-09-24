@@ -1,5 +1,16 @@
+import json
+from pathlib import Path
 import subprocess
 from collections import defaultdict
+
+arquivo_autores = Path("config/autores.json")
+
+if arquivo_autores.exists():
+    with arquivo_autores.open("r", encoding="utf-8") as arquivo:
+        autores = json.load(arquivo)
+else:
+    autores = {}
+
 
 resultado = subprocess.run(
     [
@@ -32,7 +43,7 @@ for linha in resultado.stdout.splitlines():
 
         nome = partes[1]
         email = partes[2]
-        pessoa_atual = f"{nome} <{email}>"
+        pessoa_atual = autores.get(email, nome)
 
         contribuicoes[pessoa_atual]["commits"] += 1
 
